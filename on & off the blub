@@ -1,0 +1,123 @@
+#include <ESP8266WiFi.h>
+#define LED1 D0  // LED at GPIO D0
+#define LED2 D4  // LED at GPIO D4
+const char* ssid = "PTC-1st";   //enter your wi-fi name
+const char* password = "SecurityCloud4321";    //enter the wifi password
+
+
+WiFiServer server(80);
+ 
+void setup() {
+  Serial.begin(115200);   
+  pinMode(LED1, OUTPUT);
+  digitalWrite(LED1, LOW);
+  pinMode(LED2, OUTPUT);
+  digitalWrite(LED2, LOW);
+ 
+  // Connect to WiFi network
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+ 
+  WiFi.begin(ssid, password);
+ 
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+ 
+  // Start the server
+  server.begin();
+  Serial.println("Server started at...");
+  Serial.println(WiFi.localIP());
+ 
+}
+ 
+void loop() {
+
+  // Check if a client has connected
+  WiFiClient client = server.available();
+  if (!client) {
+    return;
+  }
+ 
+  // Wait until the client sends some data
+  Serial.println("new client");
+  while (! client.available())
+  {
+    delay (1);
+  }
+  
+ 
+  // Read the first line of the request
+  String req = client.readStringUntil('\r');
+  Serial.println(req);
+  client.flush();
+ 
+  // Match the request
+  
+  if (req.indexOf("/led1/off") != -1)  {
+    
+    digitalWrite(LED1,HIGH);
+    Serial.println("LED ON");
+    
+  }
+  else if(req.indexOf("/led1/on") != -1)
+  {
+    
+    digitalWrite(LED1, LOW);
+    Serial.println("LED 1 OFF");
+  }
+
+  
+  
+  if (req.indexOf("/led2/off") != -1)  {
+    
+    digitalWrite(LED2,HIGH);
+    Serial.println("LED 2 ON");
+
+  }
+  else if(req.indexOf("/led2/on") != -1)
+  {
+    digitalWrite(LED2, LOW);
+    Serial.println("LED 2 OFF");
+
+  }
+
+  
+ 
+// Return the response
+client.println("HTTP/1.1 200 OK");
+client.println("Content-Type: text/html");
+client.println("Connection: close");
+client.println(""); 
+
+client.println("<!DOCTYPE HTML>");
+client.println("<HTML>");
+client.println("<H1> LED CONTROL </H1>");
+client.println("<br />");
+ if (req.indexOf("/led1/off") != -1){
+  client.println("<H1> LED 1 is off </H1>");
+  }else{}
+ if(req.indexOf("/led1/on") != -1){
+  client.println("<H1> LED 1 is ON </H1>");
+  }else{} 
+
+   if (req.indexOf("/led2/off") != -1){
+  client.println("<H1> LED 2 is off </H1>");
+  }else{}
+ if(req.indexOf("/led2/on") != -1){
+  client.println("<H1> LED 2 is ON </H1>");
+  }else{} 
+
+ client.println("</html>");
+ 
+  delay(1);
+  Serial.println("Client disonnected");
+  Serial.println("");
+ 
+}
+ 
